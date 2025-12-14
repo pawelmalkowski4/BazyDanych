@@ -1,6 +1,6 @@
 <style>
     body {
-        font-size: 8pt;
+        font-size: 10pt;
     }
 
     .markdown-body {
@@ -14,7 +14,7 @@
     }
 
     code, pre {
-        font-size: 5pt;
+        font-size: 7pt;
         font-family: 'Consolas', 'Courier New', monospace;
     }
 
@@ -51,7 +51,7 @@ Zaimplementowana baza danych realizuje poniższe funkcje
 
 # 2. Baza danych
 
-Nasza baza danych składa się/będzie się składać z następujących tabel:
+Nasza baza danych składa się z następujących tabel:
 
 **Produkty/Magazyn**:
 
@@ -154,4 +154,4 @@ CREATE TABLE ProductionPlan (
 
 # 3. Schemat bazy
 
-![Schemat bazy danych](Bazav1.png)
+![Schemat bazy danych](Bazav2.png)
