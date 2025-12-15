@@ -1,6 +1,3 @@
-USE u_pmalkows
-GO
-
 CREATE TABLE Components (
     ComponentID INT IDENTITY(1,1) PRIMARY KEY,
     ComponentName NVARCHAR(100) NOT NULL,
@@ -72,16 +69,18 @@ CREATE TABLE OrderDetails (
     ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
     Quantity INT NOT NULL CHECK (Quantity > 0),
     UnitPrice DECIMAL(10,2) NOT NULL,
-    Discount DECIMAL(5,2) DEFAULT 0.00
+    Discount DECIMAL(5,2) DEFAULT 0.00 -- procenty
     PRIMARY KEY (OrderID, ProductID)
 );
 
 CREATE TABLE ProductionPlan (
     PlanID INT IDENTITY(1,1) PRIMARY KEY,
     ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
-    OutDate DATE,
+    StartDate DATE,
+    OutDate DATE, 
     BatchSize INT,
-    Status VARCHAR(20) DEFAULT 'Planned' CHECK (Status IN ('Planned', 'In Production', 'Completed'))
+    Status VARCHAR(20) DEFAULT 'Planned' CHECK (Status IN ('Planned', 'In Production', 'Completed')),
+    ActualProductionCost DECIMAL(10,2) NULL 
 );
 
 CREATE TABLE ProductionOrders (
@@ -91,4 +90,3 @@ CREATE TABLE ProductionOrders (
     ReservationDate DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (OrderID, PlanID)
 );
-
