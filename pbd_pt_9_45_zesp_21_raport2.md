@@ -25,9 +25,10 @@
 
 # Podstawy baz danych
 
-pt 9:45\
+pn 9:45\
 nr zespołu: 21\
-**Autorzy**: Iga Szaflik, Paweł Małkowski, Mikołaj Gaweł
+**Autorzy**: Iga Szaflik, Paweł Małkowski, Mikołaj Gaweł \
+link
 
 # 1. Wymagania i funkcje systemu
 
@@ -51,7 +52,7 @@ Zaimplementowana baza danych realizuje poniższe funkcje:
 
 # 2. Baza danych
 
-### Schemat bazy danych
+**Schemat bazy danych**
 ![Schemat bazy danych](Bazav3.png)
 
 Nasza baza danych składa się z następujących tabel:
