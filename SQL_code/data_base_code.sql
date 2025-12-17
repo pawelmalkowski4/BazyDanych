@@ -1,3 +1,6 @@
+USE [u_pmalkows];
+GO
+
 CREATE TABLE Components (
     ComponentID INT IDENTITY(1,1) PRIMARY KEY,
     ComponentName NVARCHAR(100) NOT NULL,
