@@ -76,3 +76,79 @@ BEGIN
     RETURN ISNULL(@SumaWydatkow, 0);
 END;
 ```
+
+### 4. Status zamówień klienta
+
+(`CheckOrderProgress`)
+
+Funkcja, która dla wskazanego identyfikatora klienta (CustomerID) zwraca raport o stanie jego zamówień. Funkcja mapuje techniczne statusy bazy danych na komunikaty zrozumiałe dla użytkownika. Dodatkowo, dla aktywnych zamówień, dynamicznie oblicza liczbę dni pozostałych do planowanego terminu realizacji (RequiredDate). Dla zamówień zakończonych lub anulowanych licznik dni jest ukrywany.
+
+```sql
+CREATE FUNCTION dbo.CheckOrderProgress (@CustomerID INT)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT 
+        o.OrderID,
+        p.ProductName,
+        o.OrderDate AS Data_Zamowienia,
+        o.RequiredDate AS Termin_Realizacji,
+        
+        CASE 
+            WHEN o.Status IN ('Cancelled', 'Completed') THEN NULL
+            ELSE DATEDIFF(day, GETDATE(), o.RequiredDate) 
+        END AS Dni_Do_Konca,
+
+        o.Status AS Status_Techniczny,
+        
+        CASE o.Status
+            WHEN 'Pending' THEN 'Oczekiwanie na potwierdzenie'
+            WHEN 'In Progres' THEN 'W trakcie produkcji'
+            WHEN 'Completed' THEN 'Zrealizowane - wysłano'
+            WHEN 'Cancelled' THEN 'zamówienie anulowane'
+            ELSE 'Status nieznany'
+        END AS Komunikat_Dla_Klienta
+
+    FROM Orders o
+    JOIN OrderDetails od ON o.OrderID = od.OrderID
+    JOIN Products p ON od.ProductID = p.ProductID
+    WHERE o.CustomerID = @CustomerID
+);
+```
+### 5. Estymacja czasu ukonczenia 
+
+(`CalculateCompletionDate`)
+
+Funkcja służąca do planowania terminów. Oblicza datę zakończenia procesu (np. produkcji) na podstawie daty rozpoczęcia oraz wymaganej liczby dni roboczych. Algorytm korzysta z tabeli ProductionCalendar, co pozwala na automatyczne pomijanie weekendów oraz zdefiniowanych dni świątecznych, gwarantując realne terminy realizacji.
+
+```sql
+CREATE FUNCTION dbo.CalculateCompletionDate
+(
+    @StartDate DATE,
+    @DaysRequired INT
+)
+RETURNS DATE
+AS
+BEGIN
+    DECLARE @EndDate DATE;
+
+    SELECT @EndDate = CalendarDate
+    FROM (
+        SELECT 
+            CalendarDate,
+            ROW_NUMBER() OVER (ORDER BY CalendarDate) AS WorkDayIndex
+        FROM ProductionCalendar
+        WHERE CalendarDate > @StartDate 
+          AND IsWorkDay = 1
+    ) AS T
+    WHERE WorkDayIndex = @DaysRequired;
+
+    RETURN ISNULL(@EndDate, DATEADD(DAY, @DaysRequired, @StartDate));
+END;
+```
+
+
+
+
+
