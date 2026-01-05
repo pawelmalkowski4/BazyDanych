@@ -52,7 +52,7 @@ Zaimplementowana baza danych realizuje poniższe funkcje:
 # 2. Baza danych
 
 **Schemat bazy danych**
-![Schemat bazy danych](Bazav3.png)
+![Schemat bazy danych](Baza_r3.png)
 
 Nasza baza danych składa się z następujących tabel:
 
@@ -82,7 +82,7 @@ Nasza baza danych składa się z następujących tabel:
 Poniżej znajduje się kod tworzący tabele z uwzględnieniem warunków integralności oraz relacji.
 
 <!-- NOWA TABELA -->
-### Kalendarz produkcji
+#### Kalendarz produkcji
 ```sql
 CREATE TABLE ProductionCalendar (
     CalendarDate DATE PRIMARY KEY,
@@ -264,7 +264,6 @@ CREATE TABLE Orders (
     OrderDate DATETIME DEFAULT GETDATE(),
     RequiredDate DATETIME,
     Status VARCHAR(20) DEFAULT 'Pending' CHECK (Status IN ('Pending', 'In Progress', 'Completed', 'Cancelled'))
-
 );
 ```
 Tabela zawiera podstawowe informacje odnośnie złożonych zamówień. Jest łącznikiem między klientami, produkcją i magazynem.
@@ -300,21 +299,13 @@ Tabela zawiera szegóły dotyczące poszczególnych elementów zamówień. Pełn
 #### ProductionPlan
 ```sql
 CREATE TABLE ProductionPlan (
-
     PlanID INT IDENTITY(1,1) PRIMARY KEY,
-
     ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
-
     StartDate DATE,
-
     OutDate DATE,
-
     BatchSize INT,
-
     Status VARCHAR(20) DEFAULT 'Planned' CHECK (Status IN ('Planned', 'In Production', 'Completed')),
-
     ActualProductionCost DECIMAL(10,2) NULL
-
 );
 ```
 Tabela służy do zarządzania produkcją. Wiersze reprezentują pojedynczą partię produkcyjną, która wykonana zostanie w danym terminie.  Tabela pozwala analizować przebieg produkcji.
@@ -558,13 +549,11 @@ AS
 BEGIN
     DECLARE @TotalCost DECIMAL(10,2);
 
-    -- Sum: (Component Price * Quantity in recipe)
     SELECT @TotalCost = SUM(c.ComponentPrice * pc.PartsCounter)
     FROM ProductComposition pc
     JOIN Components c ON pc.ComponentID = c.ComponentID
     WHERE pc.ProductID = @ProductID;
 
-    -- Return 0 if no components found or result is NULL
     RETURN ISNULL(@TotalCost, 0);
 END;
 ```
@@ -582,16 +571,13 @@ BEGIN
     DECLARE @Capacity INT;
     DECLARE @EstimatedHours DECIMAL(10,1);
 
-    -- Get production capacity (units per hour) from Products table
     SELECT @Capacity = ProductionCapacity 
     FROM Products 
     WHERE ProductID = @ProductID;
 
-    -- Prevent division by zero
     IF @Capacity IS NULL OR @Capacity = 0
         SET @EstimatedHours = 0;
     ELSE
-        -- Calculate time: Quantity / Capacity
         SET @EstimatedHours = CAST(@TargetQuantity AS DECIMAL) / CAST(@Capacity AS DECIMAL);
 
     RETURN @EstimatedHours;
@@ -612,7 +598,6 @@ AS
 BEGIN
     DECLARE @SumaWydatkow DECIMAL(12,2);
 
-    -- Sumujemy: (Ilość * Cena) * (1 - Rabat)
     SELECT @SumaWydatkow = SUM((od.Quantity * od.UnitPrice) * (1.00 - ISNULL(od.Discount, 0)))
     FROM Orders o
     JOIN OrderDetails od ON o.OrderID = od.OrderID
