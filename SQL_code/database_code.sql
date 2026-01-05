@@ -1,4 +1,4 @@
-USE [u_pmalkows];
+USE u_szaflik;
 GO
 
 CREATE TABLE Components (
@@ -12,6 +12,13 @@ CREATE TABLE Categories (
     CategoryID INT IDENTITY(1,1) PRIMARY KEY,
     CategoryName NVARCHAR(50) NOT NULL,
     Description NVARCHAR(500)
+);
+
+CREATE TABLE ProductionCalendar (
+    CalendarDate DATE PRIMARY KEY,
+    DayOfWeekName NVARCHAR(20),
+    IsWorkDay BIT DEFAULT 1,
+    Description NVARCHAR(100)
 );
 
 CREATE TABLE Customers(
@@ -30,7 +37,8 @@ CREATE TABLE Products (
     CategoryID INT FOREIGN KEY REFERENCES Categories(CategoryID),
     UnitPrice DECIMAL(10,2) NOT NULL,
     UnitsInStock INT DEFAULT 0,
-    ProductionCapacity INT NOT NULL
+    ProductionCapacity INT NOT NULL,
+    Discontinued BIT DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE ProductComposition (
@@ -58,7 +66,7 @@ CREATE TABLE Orders (
     CustomerID INT FOREIGN KEY REFERENCES Customers(CustomerID), 
     OrderDate DATETIME DEFAULT GETDATE(),
     RequiredDate DATETIME,
-    Status VARCHAR(20) DEFAULT 'Pending' CHECK (Status IN ('Pending', 'In Production', 'Completed', 'Cancelled')),
+    Status VARCHAR(20) DEFAULT 'Pending' CHECK (Status IN ('Pending', 'In Progress', 'Completed', 'Cancelled')),
 );
 
 CREATE TABLE Payments(
@@ -72,7 +80,7 @@ CREATE TABLE OrderDetails (
     ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
     Quantity INT NOT NULL CHECK (Quantity > 0),
     UnitPrice DECIMAL(10,2) NOT NULL,
-    Discount DECIMAL(5,2) DEFAULT 0.00 -- procenty
+    Discount DECIMAL(3,2) DEFAULT 0.00 -- procenty, ale po przecinku
     PRIMARY KEY (OrderID, ProductID)
 );
 
@@ -87,9 +95,12 @@ CREATE TABLE ProductionPlan (
 );
 
 CREATE TABLE ProductionOrders (
-    OrderID INT FOREIGN KEY REFERENCES Orders(OrderID),
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
     PlanID INT FOREIGN KEY REFERENCES ProductionPlan(PlanID),
     ReservedQuantity INT NOT NULL CHECK (ReservedQuantity > 0),
     ReservationDate DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY (OrderID, PlanID)
+    PRIMARY KEY (OrderID, PlanID, ProductID),
+    CONSTRAINT FK_ProductionOrders_OrderDetails 
+    FOREIGN KEY (OrderID, ProductID) REFERENCES OrderDetails(OrderID, ProductID)
 );

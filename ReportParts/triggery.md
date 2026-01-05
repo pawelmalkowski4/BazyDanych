@@ -1,4 +1,4 @@
-## Trigger-y
+## Triggery
 
 ### 1. Aktualizacja stanu magazynu części po rozpoczęciu składania produktu
 (`trg_ProductionPlan_Start_ReduceComponents`)\

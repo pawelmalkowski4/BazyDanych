@@ -1,4 +1,6 @@
 -- Triggers
+USE u_szaflik;
+GO
 
 CREATE TRIGGER trg_ProductionPlan_Start_ReduceComponents
 ON ProductionPlan
@@ -26,7 +28,7 @@ BEGIN
               AND (C.UnitsInStock - (PC.PartsCounter * i.BatchSize)) < 0
         )
         BEGIN
-            RAISERROR ('Błąd: Brak wystarczającej liczby komponentów w magazynie, aby rozpocząć produkcję.', 16, 1);
+            RAISERROR ('Error: Not enough parts in warehouse, to start production.', 16, 1);
             ROLLBACK TRANSACTION;
             RETURN;
         END
@@ -53,5 +55,22 @@ BEGIN
     SET P.UnitsInStock = P.UnitsInStock - i.Quantity
     FROM Products P
     JOIN inserted i ON P.ProductID = i.ProductID;
+END;
+GO
+
+
+CREATE TRIGGER trg_ChangeOrdersStatus_OnPayment
+ON Payments
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(PaymentStatus)
+    BEGIN
+        UPDATE O
+        SET O.STATUS = 'In Progress'
+        FROM Orders O
+        INNER JOIN inserted i ON O.OrderID = i.OrderID
+        WHERE i.PaymentStatus = 'Paid';
+    END
 END;
 GO
