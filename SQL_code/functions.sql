@@ -60,3 +60,64 @@ BEGIN
     RETURN ISNULL(@TotalSpend, 0);
 END;
 GO
+
+-- Funkcja 4: CheckOrderProgress
+-- Pokazuje klientowi status jego zamówień wraz z czasem do odbioru    
+CREATE FUNCTION dbo.CheckOrderProgress (@CustomerID INT)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT 
+        o.OrderID,
+        p.ProductName,
+        o.OrderDate AS Data_Zamowienia,
+        o.RequiredDate AS Termin_Realizacji,
+        
+        CASE 
+            WHEN o.Status IN ('Cancelled', 'Completed') THEN NULL
+            ELSE DATEDIFF(day, GETDATE(), o.RequiredDate) 
+        END AS Dni_Do_Konca,
+
+        o.Status AS Status_Techniczny,
+        
+        CASE o.Status
+            WHEN 'Pending' THEN 'Oczekiwanie na potwierdzenie'
+            WHEN 'In Progres' THEN 'W trakcie produkcji'
+            WHEN 'Completed' THEN 'Zrealizowane - wysłano'
+            WHEN 'Cancelled' THEN 'zamówienie anulowane'
+            ELSE 'Status nieznany'
+        END AS Komunikat_Dla_Klienta
+
+    FROM Orders o
+    JOIN OrderDetails od ON o.OrderID = od.OrderID
+    JOIN Products p ON od.ProductID = p.ProductID
+    WHERE o.CustomerID = @CustomerID
+);
+GO
+
+-- funkcja 5 Estymacja czasu (omija weekendy i święta)
+CREATE FUNCTION dbo.CalculateCompletionDate
+(
+    @StartDate DATE,
+    @DaysRequired INT
+)
+RETURNS DATE
+AS
+BEGIN
+    DECLARE @EndDate DATE;
+
+    SELECT @EndDate = CalendarDate
+    FROM (
+        SELECT 
+            CalendarDate,
+            ROW_NUMBER() OVER (ORDER BY CalendarDate) AS WorkDayIndex
+        FROM ProductionCalendar
+        WHERE CalendarDate > @StartDate 
+          AND IsWorkDay = 1
+    ) AS T
+    WHERE WorkDayIndex = @DaysRequired;
+
+    RETURN ISNULL(@EndDate, DATEADD(DAY, @DaysRequired, @StartDate));
+END;
+GO
