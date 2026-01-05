@@ -514,7 +514,7 @@ GO
 
 ### 3. Aktualizacja statusu zamówienia po dokonaniu płatności
 (` trg_ChangeOrdersStatus_OnPayment`)\
-Wyzwalacz zmienia status zamówienia na (`In Production`) w po dokonaniu płatności przez klienta.
+Wyzwalacz zmienia status zamówienia na (`In Progress`) w po dokonaniu płatności przez klienta.
 
 
 ```sql
@@ -526,7 +526,7 @@ BEGIN
     IF UPDATE(PaymentStatus)
     BEGIN
         UPDATE O
-        SET O.STATUS = 'In Production'
+        SET O.STATUS = 'In Progress'
         FROM Orders O
         INNER JOIN inserted i ON O.OrderID = i.OrderID
         WHERE i.PaymentStatus = 'Paid';
@@ -635,7 +635,7 @@ RETURN
         
         CASE o.Status
             WHEN 'Pending' THEN 'Oczekiwanie na potwierdzenie'
-            WHEN 'In Progres' THEN 'W trakcie produkcji'
+            WHEN 'In Progress' THEN 'W realizacji'
             WHEN 'Completed' THEN 'Zrealizowane - wysłano'
             WHEN 'Cancelled' THEN 'zamówienie anulowane'
             ELSE 'Status nieznany'
