@@ -73,3 +73,20 @@ LEFT JOIN OrderDetails od ON o.OrderID = od.OrderID
 LEFT JOIN Companies comp ON c.CustomerID = comp.CustomerID
 LEFT JOIN PrivateCustomers pc ON c.CustomerID = pc.CustomerID
 GROUP BY c.CustomerID, c.CustomerType, comp.CompanyName, pc.FirstName, pc.LastName;
+
+CREATE VIEW v_MonthlySalesStats AS
+SELECT 
+    YEAR(o.OrderDate) AS SalesYear,
+    MONTH(o.OrderDate) AS SalesMonth,
+    DATENAME(MONTH, o.OrderDate) AS MonthName,
+    COUNT(DISTINCT o.OrderID) AS TotalOrders, 
+    SUM(od.Quantity) AS TotalProductsSold,   
+    CAST(SUM(od.Quantity * od.UnitPrice * (1 - od.Discount)) AS DECIMAL(10,2)) AS TotalRevenue
+FROM Orders o
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+WHERE o.Status != 'Cancelled'
+GROUP BY 
+    YEAR(o.OrderDate), 
+    MONTH(o.OrderDate), 
+    DATENAME(MONTH, o.OrderDate);
+GO
