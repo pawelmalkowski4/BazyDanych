@@ -4,7 +4,8 @@ GO
 CREATE TABLE Components (
     ComponentID INT IDENTITY(1,1) PRIMARY KEY,
     ComponentName NVARCHAR(100) NOT NULL,
-    ComponentPrice DECIMAL(10,2) NOT NULL,
+    ReservedQuantity INT NOT NULL,
+    ComponentPrice DECIMAL(10,2) NOT NULL CHECK (ComponentPrice > 0),
     UnitsInStock INT DEFAULT 0
 );
 
@@ -66,7 +67,7 @@ CREATE TABLE Orders (
     CustomerID INT FOREIGN KEY REFERENCES Customers(CustomerID), 
     OrderDate DATETIME DEFAULT GETDATE(),
     RequiredDate DATETIME,
-    Status VARCHAR(20) DEFAULT 'Pending' CHECK (Status IN ('Pending', 'In Progress', 'Completed', 'Cancelled')),
+    Status VARCHAR(20) DEFAULT 'Pending' CHECK (Status IN ('Pending', 'In Production', 'Completed', 'Cancelled')),
 );
 
 CREATE TABLE Payments(
