@@ -15,8 +15,10 @@ JOIN Categories c ON p.CategoryID = c.CategoryID
 JOIN Customers cust ON o.CustomerID = cust.CustomerID;
 
 
-
 CREATE VIEW v_InventoryStatus AS
+WITH Constants AS (
+    SELECT 50 AS BatchSize
+)
 SELECT 
     p.ProductID,
     p.ProductName,
@@ -28,14 +30,17 @@ SELECT
         WHEN p.UnitsInStock < 10 THEN 'Low Stock - Reorder'
         ELSE 'Available'
     END AS StockStatus,
-    CAST(50.0 / NULLIF(p.ProductionCapacity, 0) AS DECIMAL(5,1)) AS DaysToProduceBatch50
+    CAST(const.BatchSize/ NULLIF(p.ProductionCapacity, 0) AS DECIMAL(5,1)) AS DaysToProduceBatch
 FROM Products p
-JOIN Categories c ON p.CategoryID = c.CategoryID;
+JOIN Categories c ON p.CategoryID = c.CategoryID
+CROSS JOIN Constants const;
+GO
 
 
 
 CREATE VIEW v_ProductProductionCosts AS
 SELECT 
+    p.productID,
     p.ProductName,
     c.CategoryName,
     SUM(comp.ComponentPrice * pc.PartsCounter) AS TotalMaterialCost,
@@ -45,7 +50,8 @@ FROM Products p
 JOIN Categories c ON p.CategoryID = c.CategoryID
 JOIN ProductComposition pc ON p.ProductID = pc.ProductID
 JOIN Components comp ON pc.ComponentID = comp.ComponentID
-GROUP BY p.ProductName, c.CategoryName, p.UnitPrice;
+GROUP BY p.ProductID, p.ProductName, c.CategoryName, p.UnitPrice;
+GO
 
 
 
